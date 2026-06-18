@@ -9,8 +9,6 @@ cmake -B build
 cmake --build build
 ```
 
-requires: C++23 compiler, libdl, libpthread
-
 ## usage
 
 ```
@@ -30,8 +28,6 @@ logs to stderr by default. set `OSU_INTROSPECT_LOG=/tmp/trace.jsonl` for file ou
 | `OSU_INTROSPECT_DEVIRT`       | `1`                      | enable vm memory scanning |
 
 ## devirt
-
-ptrace-based single-step tracer for devirtualizing the VM's scattered handler fragments:
 
 ```
 sudo ./build/devirt/osu_ac_ptrace <pid> --trace-state --max-steps 5000 > trace.jsonl
