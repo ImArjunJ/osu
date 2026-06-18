@@ -17,6 +17,8 @@ void try_lazy_detect(void* return_addr) {
             ac::ExportInterceptor::instance().try_hook_exports();
             ac::VtablePatcher::instance().try_patch();
             ac::VmTracer::instance().install(mt.base());
+        }
+        if (!ac::CryptoHooks::instance().is_installed()) {
             ac::CryptoHooks::instance().install(mt.base());
         }
         return;
