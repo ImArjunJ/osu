@@ -35,56 +35,6 @@ static void log_anticheat_context(void* capture) {
             w.field_hex(key, qwords[i]);
         }
     });
-    static bool dumped_object = false;
-    if (!dumped_object && qwords[1] != 0) {
-        dumped_object = true;
-        auto* obj = reinterpret_cast<std::uint8_t*>(qwords[1]);
-        for (int chunk = 0; chunk < 32; chunk++) {
-            int offset = chunk * 32;
-            log.log(core::Category::System, [&](core::JsonWriter& w) {
-                w.field("event", "ac_object_dump");
-                w.field("offset", offset);
-                char hex[128];
-                for (int i = 0; i < 32; i++)
-                    std::snprintf(hex + i * 3, 4, "%02x ", obj[offset + i]);
-                hex[95] = '\0';
-                w.field("hex", hex);
-                auto* qw = reinterpret_cast<std::uintptr_t*>(obj + offset);
-                for (int i = 0; i < 4; i++) {
-                    auto val = qw[i];
-                    if (val > base && val < base + 0x7C2000) {
-                        char key[8];
-                        std::snprintf(key, sizeof(key), "ptr%d", i);
-                        w.field_hex(key, val - base);
-                    }
-                }
-            });
-        }
-        int ptr_offsets[] = {120, 192, 200, 208, 216, 224};
-        for (int pi = 0; pi < 6; pi++) {
-            int ptr_off = ptr_offsets[pi];
-            auto heap_ptr = *reinterpret_cast<std::uintptr_t*>(obj + ptr_off);
-            if (heap_ptr == 0 || heap_ptr == 0xFFFFFFFFFFFFFFFFULL)
-                continue;
-            if (heap_ptr < 0x100000)
-                continue;
-            auto* heap_data = reinterpret_cast<std::uint8_t*>(heap_ptr);
-            for (int hchunk = 0; hchunk < 8; hchunk++) {
-                int hoffset = hchunk * 32;
-                log.log(core::Category::System, [&](core::JsonWriter& w) {
-                    w.field("event", "ac_heap_dump");
-                    w.field("src_offset", ptr_off);
-                    w.field("heap_offset", hoffset);
-                    w.field_hex("heap_addr", heap_ptr);
-                    char hex[128];
-                    for (int i = 0; i < 32; i++)
-                        std::snprintf(hex + i * 3, 4, "%02x ", heap_data[hoffset + i]);
-                    hex[95] = '\0';
-                    w.field("hex", hex);
-                });
-            }
-        }
-    }
 }
 static void hook_state_transition(void* capture, std::uint32_t* prev, std::uint32_t* curr) {
     auto& vp = VtablePatcher::instance();
